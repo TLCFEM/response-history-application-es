@@ -1,0 +1,112 @@
+node 1 0. 0.
+node 2 1.5 0.
+node 3 3. 0.
+node 4 0. 1.5
+node 5 1.5 1.5
+node 6 3. 1.5
+node 7 0. 3.
+node 8 1.5 3.
+node 9 3. 3.
+node 10 0. 4.5
+node 11 1.5 4.5
+node 12 3. 4.5
+node 13 0. 6.
+node 14 1.5 6.
+node 15 3. 6.
+node 16 0. 7.5
+node 17 1.5 7.5
+node 18 3. 7.5
+node 19 0. 9.
+node 20 1.5 9.
+node 21 3. 9.
+node 22 0. 10.5
+node 23 1.5 10.5
+node 24 3. 10.5
+node 25 0. 12.
+node 26 1.5 12.
+node 27 3. 12.
+node 28 0. 13.5
+node 29 1.5 13.5
+node 30 3. 13.5
+node 31 0. 15.
+node 32 1.5 15.
+node 33 3. 15.
+
+element SRGCMQL 1 1 2 5 4 1 .2 .005 3 .005 3
+element SRGCMQL 2 2 3 6 5 1 .2 .005 3 .005 3
+element SRGCMQL 3 4 5 8 7 1 .2 .005 3 .005 3
+element SRGCMQL 4 5 6 9 8 1 .2 .005 3 .005 3
+element SRGCMQL 5 7 8 11 10 1 .2 .005 3 .005 3
+element SRGCMQL 6 8 9 12 11 1 .2 .005 3 .005 3
+element SRGCMQL 7 10 11 14 13 1 .2 .005 3 .005 3
+element SRGCMQL 8 11 12 15 14 1 .2 .005 3 .005 3
+element SRGCMQL 9 13 14 17 16 1 .2 .005 3 .005 3
+element SRGCMQL 10 14 15 18 17 1 .2 .005 3 .005 3
+element SRGCMQL 11 16 17 20 19 1 .2 .005 3 .005 3
+element SRGCMQL 12 17 18 21 20 1 .2 .005 3 .005 3
+element SRGCMQL 13 19 20 23 22 1 .2 .005 3 .005 3
+element SRGCMQL 14 20 21 24 23 1 .2 .005 3 .005 3
+element SRGCMQL 15 22 23 26 25 1 .2 .005 3 .005 3
+element SRGCMQL 16 23 24 27 26 1 .2 .005 3 .005 3
+element SRGCMQL 17 25 26 29 28 1 .2 .005 3 .005 3
+element SRGCMQL 18 26 27 30 29 1 .2 .005 3 .005 3
+element SRGCMQL 19 28 29 32 31 1 .2 .005 3 .005 3
+element SRGCMQL 20 29 30 33 32 1 .2 .005 3 .005 3
+
+mass 104 7 5E-3 1
+mass 105 8 1E-2 1
+mass 106 9 5E-3 1
+
+mass 110 13 5E-3 1
+mass 111 14 1E-2 1
+mass 112 15 5E-3 1
+
+mass 116 19 5E-3 1
+mass 117 20 1E-2 1
+mass 118 21 5E-3 1
+
+mass 122 25 5E-3 1
+mass 123 26 1E-2 1
+mass 124 27 5E-3 1
+
+mass 128 31 5E-3 1
+mass 129 32 1E-2 1
+mass 130 33 5E-3 1
+
+material PlaneStress 1 2
+material CDP 2 3E4 .2 3. 30. 8E-3 8E-1 .5 4. .6 .8 .2 1.16 .2 0.
+material MPF 3 2E5 300 .02
+
+# material Elastic2D 1 3E4 .2
+# material Elastic1D 3 2E5
+
+fix2 1 P 1 2 3
+
+# step frequency 1 2
+# 
+# analyze
+# 
+# peek eigenvalue
+
+amplitude Tabular 1 ELNS
+acceleration 2 1 9.81 1
+
+hdf5recorder 1 Node U1 31 32 33
+hdf5recorder 2 Node RF1 1 2 3
+hdf5recorder 3 Element KAPPAT 1 2
+hdf5recorder 4 Element REBARE 1 2
+hdf5recorder 5 Element REBARS 1 2
+
+step dynamic 1 40
+set ini_step_size 5E-3
+set fixed_step_size 1
+
+integrator RayleighNewmark 1 1.5839E+00 0. 7.9228E-04
+
+converger RelIncreDisp 1 1E-4 20 1
+
+analyze
+
+save recorder 1 2 3 4 5
+
+exit

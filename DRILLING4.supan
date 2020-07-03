@@ -1,0 +1,63 @@
+node 1 0. 0.
+node 2 2.5 0.
+node 3 5. 0.
+node 4 7.5 0.
+node 5 10. 0.
+node 6 0. 2.5
+node 7 2.5 2.5
+node 8 5. 2.5
+node 9 7.5 2.5
+node 10 10. 2.5
+node 11 0. 5.
+node 12 2.5 5.
+node 13 5. 5.
+node 14 7.5 5.
+node 15 10. 5.
+node 16 0. 7.5
+node 17 2.5 7.5
+node 18 5. 7.5
+node 19 7.5 7.5
+node 20 10. 7.5
+node 21 0. 10.
+node 22 2.5 10.
+node 23 5. 10.
+node 24 7.5 10.
+node 25 10. 10.
+node 26 20 10
+
+element SGCMQI 1 1 2 7 6 1 1
+element SGCMQI 2 2 3 8 7 1 1
+element SGCMQI 3 3 4 9 8 1 1
+element SGCMQI 4 4 5 10 9 1 1
+element SGCMQI 5 6 7 12 11 1 1
+element SGCMQI 6 7 8 13 12 1 1
+element SGCMQI 7 8 9 14 13 1 1
+element SGCMQI 8 9 10 15 14 1 1
+element SGCMQI 9 11 12 17 16 1 1
+element SGCMQI 10 12 13 18 17 1 1
+element SGCMQI 11 13 14 19 18 1 1
+element SGCMQI 12 14 15 20 19 1 1
+element SGCMQI 13 16 17 22 21 1 1
+element SGCMQI 14 17 18 23 22 1 1
+element SGCMQI 15 18 19 24 23 1 1
+element SGCMQI 16 19 20 25 24 1 1
+
+section Rectangle2D 1 1 2 2
+
+element B21 17 25 26 1 6
+
+material Elastic2D 1 1 0
+material Elastic1D 2 1000
+
+fix2 1 P 1 2 3 4 5
+
+displacement 1 0 1 2 26
+
+step static 1
+set ini_step_size 1
+
+analyze
+
+peek node 26
+
+exit

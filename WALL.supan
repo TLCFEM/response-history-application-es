@@ -1,0 +1,64 @@
+node 1 0 0
+node 2 3 0
+node 3 0 3
+node 4 3 3
+node 5 0 6
+node 6 3 6
+node 7 0 9
+node 8 3 9
+node 9 0 12
+node 10 3 12
+node 11 0 15
+node 12 3 15
+
+element SRGCMQL 1 1 2 4 3 1 .2 .005 3 .005 3
+element SRGCMQL 2 3 4 6 5 1 .2 .005 3 .005 3
+element SRGCMQL 3 5 6 8 7 1 .2 .005 3 .005 3
+element SRGCMQL 4 7 8 10 9 1 .2 .005 3 .005 3
+element SRGCMQL 5 9 10 12 11 1 .2 .005 3 .005 3
+
+material PlaneStress 1 2
+material CDP 2 3E4 .2 3. 30. 4E-3 4E-1 .5 4. .6 .8 .2 1.16 .2 0.
+material MPF 3 2E5 300 .02
+
+# material Elastic2D 1 3E4 .2
+# material Elastic1D 3 2E5
+
+mass 10 3 1E-2 1
+mass 11 4 1E-2 1
+mass 12 5 1E-2 1
+mass 13 6 1E-2 1
+mass 14 7 1E-2 1
+mass 15 8 1E-2 1
+mass 16 9 1E-2 1
+mass 17 10 1E-2 1
+mass 18 11 1E-2 1
+mass 19 12 1E-2 1
+
+fix2 1 P 1 2
+
+# step frequency 1 2
+# 
+# analyze
+# 
+# peek eigenvalue
+
+amplitude Tabular 1 ELNS
+acceleration 2 1 9.81 1
+
+hdf5recorder 1 Node U 11 12
+hdf5recorder 2 Element KAPPAT 1
+
+step dynamic 1 40
+set ini_step_size 1E-2
+set fixed_step_size 1
+
+integrator RayleighNewmark 1 1.6081E+00 0. 7.5976E-04
+
+converger RelIncreDisp 1 1E-4 20 1
+
+analyze
+
+save recorder 1 2
+
+exit

@@ -1,0 +1,35 @@
+node 1 0 0
+node 2 5 0
+node 3 10 0
+node 4 0 5
+node 5 5 5
+node 6 10 5
+node 7 0 10
+node 8 5 10
+node 9 10 10
+node 10 20 10
+
+element SGCMQI 1 1 2 5 4 1 1
+element SGCMQI 2 2 3 6 5 1 1
+element SGCMQI 3 4 5 8 7 1 1
+element SGCMQI 4 5 6 9 8 1 1
+
+section Rectangle2D 1 1 2 2
+
+element B21 5 9 10 1 6
+
+material Elastic2D 1 1 0
+material Elastic1D 2 1000
+
+fix2 1 P 1 2 3
+
+displacement 1 0 1 2 10
+
+step static 1
+set ini_step_size 1
+
+analyze
+
+peek node 10
+
+exit
