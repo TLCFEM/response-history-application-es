@@ -11,15 +11,17 @@ node 10 3 12
 node 11 0 15
 node 12 3 15
 
-element SRGCMQL 1 1 2 4 3 1 .2 .005 3 .005 3
-element SRGCMQL 2 3 4 6 5 1 .2 .005 3 .005 3
-element SRGCMQL 3 5 6 8 7 1 .2 .005 3 .005 3
-element SRGCMQL 4 7 8 10 9 1 .2 .005 3 .005 3
-element SRGCMQL 5 9 10 12 11 1 .2 .005 3 .005 3
+element SGCMQL 1 1 2 4 3 1 .2
+element SGCMQL 2 3 4 6 5 1 .2
+element SGCMQL 3 5 6 8 7 1 .2
+element SGCMQL 4 7 8 10 9 1 .2
+element SGCMQL 5 9 10 12 11 1 .2
 
-material PlaneStress 1 2
-material CDP 2 3E4 .2 3. 30. 4E-3 4E-1 .5 4. .6 .8 .2 1.16 .2 0.
-material MPF 3 2E5 300 .02
+material CDP 5 3E4 .2 3. 30. 4E-3 4E-1 .5 4. .6 .8 .2 1.16 .2 0.
+material PlaneStress 3 5
+material MPF 4 2E5 300 .02
+material Rebar2D 2 4 4 .005 .005
+material Laminated 1 2 3
 
 # material Elastic2D 1 3E4 .2
 # material Elastic1D 3 2E5
