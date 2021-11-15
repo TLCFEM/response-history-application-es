@@ -1,0 +1,538 @@
+\documentclass[3p,sort&compress,review,11pt,fleqn]{elsarticle}
+\bibliographystyle{elsarticle-num-names}
+\usepackage{amsmath,amsfonts,amssymb,siunitx,float,subcaption,booktabs,gnuplot-lua-tikz,structmech,setspace,pgfplots,bm}
+\journal{Engineering Structures}
+\newcommand*{\md}[1]{\mathrm{d}#1}
+\newcommand*{\mT}{\mathrm{T}}
+\newcommand*{\secref}[1]{\S~\ref{#1}}
+\newcommand*{\pfrac}[2]{\dfrac{\partial#1}{\partial#2}}
+\newcommand*{\figref}[1]{Fig.~\ref{#1}}
+\newcommand*{\eqsref}[1]{Eq.~(\ref{#1})}
+\newcommand*{\tabref}[1]{Table~\ref{#1}}
+\newcommand*{\mathbold}[1]{\bm{#1}}
+\pgfplotsset{compat=1.17}
+\begin{document}
+\begin{abstract}
+A novel membrane element named as GCMQ (Generalised Conforming Mixed Quadrilateral) has recently been proposed for modelling reinforced concrete shear walls, as well as other types of planar problems. In this work, a simplified version, abbreviated to SGCMQ (Simplified GCMQ), is constructed by omitting the enhanced strain field for the purpose of an improved balance between cost and performance. The new SGCMQ element is investigated in details with emphasis on its performance in respect of response history analysis. Both simple elastic material and complex elasto-plastic materials, including reinforced concrete, are adopted in order to benchmark the performance in different cases.
+
+The high coarse mesh accuracy is retained in SGCMQ. The numerical simulations show that SGCMQ and GCMQ are able to predict accurate natural periods with very few elements defined. This feature is beneficial for both linear and nonlinear analyses to reduce computational cost as well as  to improve accuracy by filtering out high frequency noise. With objective material models that can account for the size effect, it is possible to perform response history analyses of reinforced concrete structures with a relatively low computational cost and obtain results of high accuracy and reliability providing that the material response is accurate.
+\end{abstract}
+\begin{keyword}
+finite element analysis\sep
+response history analysis\sep
+mixed formulation\sep
+membrane element\sep
+reinforced concrete shear wall
+\end{keyword}
+\begin{frontmatter}
+\title{Numerical evaluations of a novel membrane element in response history analysis of reinforced concrete shear walls}
+\author[add1]{T.~L.~Chang\corref{tlc}}
+\ead{tlcfem@gmail.com}
+\author[add1]{C.-L.~Lee}
+\author[add1]{A.~J.~Carr}
+\author[add1]{R.~P.~Dhakal}
+\cortext[tlc]{corresponding author}
+\address[add1]{Department of Civil and Natural Resources Engineering, University of Canterbury, Christchurch, NZ, 8041.}
+\end{frontmatter}
+\section{Introduction}
+With the development of finite element methods and computer technology, civil engineers can perform numerical simulations of a vast range of structures nowadays. To model reinforced concrete shear walls, as a common practice, often 1D elements (beams, springs and/or elements consist of multiple springs) are used due to their simple formulation and low demand on computational cost \citep[to name a few, see, e.g.,][]{Chaallal1996,Hidalgo2002,Orakcal2004,Lu2005,Belmouden2007,Martinelli2009,Tang2011,Pugh2015,Terzic2019,Bedeir2019}. Such an approach enables structural engineers to perform nonlinear response history analyses on large-scale structures with a relatively low computational cost. However, since the numerical model developed does not always represent the exact geometry of the target structure and uncertainties exist in material models, it is difficult to adopt such a strategy in black box analyses. One prominent problem existing in all 1D elements is the `plane sections remain plane' assumption. This, or other similar assumptions, such as the artificially assigned centre of rotation, is inevitable when 1D elements are used to model 2D problems and could be the main source of error in numerical models of, for example, short/squat walls. Another concern lies in the adopted uniaxial hysteresis model. The corresponding hysteretic relation is often determined empirically based on experimental data of wall specimens, which would be affected by multiple factors such as reinforcement ratio/layout, aspect ratio, shear span, loading pattern, etc. Hence it can be inferred that even if the adopted element can successfully account for the shear-flexure interaction, it would still be difficult to predict the response of shear walls in existing structures subjected to general loading scenarios.
+
+In the authors' opinion, the modelling of RC shear walls, which is a 2D problem, shall be addressed by using 2D numerical tools (both element and material). However, existing approaches that adopt 2D membrane elements in modelling shear walls require dense meshes to be defined \citep[see, e.g.,][]{Dashti2017,Kolozvari2019}. A potential approach is to improve the performance of 2D traditional finite elements so that coarser meshes can be used to obtain a satisfactory level of accuracy. As a result, the overall computational cost can be reduced. A novel four-node membrane element based on the mixed formulation has been proposed recently \citep{Chang2019a} for this purpose. The investigation of its performance subjected to static loadings has been shown in the previous work \citep{Chang2019}. For analysis tasks that involve heavy computation of element response, such as nonlinear response history analysis, a more cost efficient element, named as SGCMQ, is proposed in this work. The corresponding variational formulation is firstly presented, followed by brief introductions on mass matrix formulation and material models used in examples. Finally, the performance of the SGCMQ element subjected to dynamic excitations is investigated.
+\section{A Simplification of GCMQ}
+Although the computational cost of GCMQ has been minimised, for seismic engineering related applications that involve materials with complicated response, such as reinforced concrete, the additional improvement of performance (around a few percent) brought by the enhanced strain field is disproportional to its computational cost \citep[see][for cost estimation]{Chang2020}. Meanwhile, the overall numerical performance does not solely depend on the element adopted, the material models used may play an equally vital role. A cost efficient element is thus of more interest.
+
+To this end, the original functional, which includes the enhanced strain field, can be further simplified by omitting the enhanced strain field, resulting in the following governing functional.
+\begin{gather}\label{eq:simplified_principle}
+\varPi\left(\mathbold{u},\mathbold{\varepsilon},\mathbold{\sigma}\right)=\int_V\left[W\left(\mathbold{\varepsilon}\right)+\mathbold{\sigma}^\mT\left(\nabla\mathbold{u}-\mathbold{\varepsilon}\right)\right]\md{V}-\varPi_{b.t.},
+\end{gather}
+where $\mathbold{u}$ is the displacement, $\mathbold{\sigma}$ is the stress, $W\left(\mathbold{\varepsilon}\right)$ denotes the strain energy that is normally a nonlinear function of strain $\mathbold{\varepsilon}$ and $\varPi_{b.t.}$ includes all boundary terms that can be handled separately. \eqsref{eq:simplified_principle} is identical to the Hu-Washizu variational principle, although $\mathbold{u}$ now consists of the contributions of both translational and drilling degrees of freedom.
+
+Based on the above simplification, a new element, denoted as SGCMQ (Simplified GCMQ), can be derived. The derivation resembles that of GCMQ. Here a brief summary is presented solely for completeness. By taking variations of \eqsref{eq:simplified_principle} and linearising the results using the following discretisations,
+\begin{gather*}
+\mathbold{u}=\mathbold{\phi}_u\mathbold{q},\quad
+\mathbold{\sigma}=\mathbold{\phi}_\sigma\mathbold{\alpha},\quad
+\mathbold{\varepsilon}=\mathbold{\phi}_\varepsilon\mathbold{\beta},
+\end{gather*}
+where $\mathbold{q}$, $\mathbold{\alpha}$ and $\mathbold{\beta}$ are interpolation parameters for displacement, stress and strain, respectively. Meanwhile, $\mathbold{\phi}_u$, $\mathbold{\phi}_\sigma$ and $\mathbold{\phi}_\varepsilon$ are the corresponding interpolation functions that are chosen to be identical to that of GCMQ.
+
+The system of linear equations can be expressed as
+\begin{gather}
+\begin{bmatrix}
+	\cdot        & \mathbold{N}^\mT  & \cdot                \\
+	\mathbold{N} & \cdot             & -\mathbold{H}        \\
+	\cdot        & -\mathbold{H}^\mT & \tilde{\mathbold{H}}
+\end{bmatrix}\begin{bmatrix}
+\Delta\mathbold{q}\\\Delta\mathbold{\alpha}\\\Delta\mathbold{\beta}
+\end{bmatrix}=\begin{bmatrix}
+\Delta{}\mathbold{P}\\\mathbold{0}\\\mathbold{0}
+\end{bmatrix},
+\end{gather}
+with
+\begin{gather}
+\mathbold{H}=\int_{V}\mathbold{\phi}_\sigma^\mT\mathbold{\phi}_\varepsilon~\md{V},\\
+\tilde{\mathbold{H}}=\int_{V}\mathbold{\phi}_\varepsilon^\mT\tilde{\mathbold{E}}\mathbold{\phi}_\varepsilon~\md{V},\\
+\mathbold{N}=\int_{V}\mathbold{\phi}_\sigma^\mT\mathbold{L}\mathbold{\phi}_u~\md{V},
+\end{gather}
+in which $\Delta{}\mathbold{P}=\mathbold{P}_{n+1}-\mathbold{P}_n$ is the increment of external load, $\tilde{\mathbold{E}}$ is the material tangent stiffness and $\mathbold{L}$ is the gradient operator.
+
+With an invertible $\mathbold{H}$, after static condensation, the equivalent stiffness $\mathbold{K}$ can be simply expressed as
+\begin{gather*}
+\mathbold{K}=\mathbold{N^\mT{}H^{-\mT}\tilde{H}H^{-1}N}.
+\end{gather*}
+By further denoting $\mathbold{\bar{N}}=\mathbold{\phi}_\varepsilon\mathbold{H}^{-1}\mathbold{N}$, one can obtain
+\begin{gather}\label{eq:stiffness}
+\mathbold{K}=\int_{V}\mathbold{\bar{N}}^\mT\tilde{\mathbold{E}}\mathbold{\bar{N}}~\md{V}.
+\end{gather}
+\eqsref{eq:stiffness} has a form similar to that of traditional displacement based elements. As a result, no element level matrix operations are required. The numerical cost of such a simplified element is only about \num{2} to \num{3} times of that of Q4 (isoparametric bilinear four-node element, CPS4 in ABAQUS notation). Meanwhile, with \eqsref{eq:stiffness}, it is possible to formulate planar shell elements by combining other high performing plate elements into the formulation in a relatively independent manner. Since the plate theory has been extensively investigated by researchers to date, a lot of very good four-node plate elements are available in current literature. Successful ones, such as the DKT element family \citep{Batoz1980}, can be directly borrowed. A shell element, named as SGCMS, that combines SGCMQ and DKT has been implemented in \texttt{suanPan} \citep{Chang2019b}.
+
+The same quadrature schemes used in GCMQ \citep[see][]{Chang2019a} are adopted in SGCMQ. So the following notations are used to denote elements with different quadrature schemes: GCMQI, GCMQL, GCMQG, SGCMQI, SGCMQL and SGCMQG where I stands for Iron's scheme, L stands for Lobatoo scheme and G for Gauss scheme. The notation (S)GCMQ represents all above six versions of GCMQ and SGCMQ.
+\section{Mass Matrix}
+Either consistent or lumped mass matrices can be used in analyses. The standard concentration methods can be applied. According to the finite element formulation, the mass matrix can be computed based on the integration of displacement shape functions. Such a formulation is known as the consistent (to displacement) mass matrix. In GCMQ and SGCMQ, using the previous notations, the mass matrix $\mathbold{M}$ can be expressed as
+\begin{gather}\label{eq:consistent_mass}
+\mathbold{M}=\int_{V}\mathbold{\phi}_u^\mT\rho\mathbold{\phi}_u~\md{V}.
+\end{gather}
+
+It is known that omitting rotational inertia has little impact on the accuracy of computed lower mode frequencies for normal finite element meshes. By setting the four drilling diagonal terms to zeros, \eqsref{eq:consistent_mass} becomes the consistent mass matrix of the bilinear quadrilateral element (Q4) with additional zero fill-ins. It shall be noted that such a reduced mass matrix and its lumped companion are only positive semi-definite. 
+
+Apart from the above two consistent formulations, the corresponding lumped versions can also be adopted to save storage. There are a few different lumping approaches. The diagonal scaling approach is one of them and it uses the following expression.
+\begin{gather}
+\bar{\mathbold{M}}_{ij}=\left\{
+\begin{array}{ll}
+\alpha{}\mathbold{M}_{ij},&i=j,\\
+0,&i\neq{}j,
+\end{array}
+\right.
+\end{gather}
+where $\bar{\mathbold{M}}$ is the lumped version of the consistent mass matrix $\mathbold{M}$ and $\alpha$ is the scaling factor and shall be properly determined so that the total mass along each direction equals the mass of the element. Details and other options can be found in literature on this topic \citep[see][]{Chopra2011}. An illustration of entry patterns of different mass formulations can be seen in \figref{fig:mass_pattern}.
+\begin{figure}[htb]
+\centering\scriptsize
+\begin{tikzpicture}[scale=.2]
+\begin{scope}
+\begin{scope}[every node/.style={circle,fill=black,minimum size=1mm,inner sep=0}]
+\draw(0,-1)rectangle(13,12);
+\foreach\x in{1,2,3,...,12}\node at(\x,12-\x){};
+\foreach\x in{1,2,3,...,9}\node at(\x,9-\x){};
+\foreach\x in{1,2,3,...,6}\node at(\x,6-\x){};
+\foreach\x in{1,2,3}\node at(\x,3-\x){};
+\foreach\x in{4,...,12}\node at(\x,15-\x){};
+\foreach\x in{7,...,12}\node at(\x,18-\x){};
+\foreach\x in{10,11,12}\node at(\x,21-\x){};
+\end{scope}
+\node[align=center]at(7,-4){consistent mass};
+\end{scope}
+\begin{scope}[xshift=18cm]
+\begin{scope}[every node/.style={circle,fill=black,minimum size=1mm,inner sep=0}]
+\draw(0,-1)rectangle(13,12);
+\foreach\x in{1,2,4,5,7,8,10,11}\node at(\x,12-\x){};
+\foreach\x in{1,2,4,5,7,8}\node at(\x,9-\x){};
+\foreach\x in{1,2,4,5}\node at(\x,6-\x){};
+\foreach\x in{1,2}\node at(\x,3-\x){};
+\foreach\x in{4,5,7,8,10,11}\node at(\x,15-\x){};
+\foreach\x in{7,8,10,11}\node at(\x,18-\x){};
+\foreach\x in{10,11}\node at(\x,21-\x){};
+\end{scope}
+\node[align=center]at(7,-4){consistent mass\\without drilling};
+\end{scope}
+\begin{scope}[xshift=36cm]
+\begin{scope}[every node/.style={circle,fill=black,minimum size=1mm,inner sep=0}]
+\draw(0,-1)rectangle(13,12);
+\foreach\x in{1,...,12}\node at(\x,12-\x){};
+\end{scope}
+\node[align=center]at(7,-4){lumped mass};
+\end{scope}
+\begin{scope}[xshift=54cm]
+\begin{scope}[every node/.style={circle,fill=black,minimum size=1mm,inner sep=0}]
+\draw(0,-1)rectangle(13,12);
+\foreach\x in{1,2,4,5,7,8,10,11}\node at(\x,12-\x){};
+\end{scope}
+\node[align=center]at(7,-4){lumped mass\\without drilling};
+\end{scope}
+\end{tikzpicture}
+\caption{entry patterns of different mass matrices}\label{fig:mass_pattern}
+\end{figure}
+It is preferable to have a positive definite (non-singular) mass matrix so that the frequencies of the corresponding model are well bounded. A singular mass matrix may not be an issue for dynamic applications in structural engineering which are mostly subjected to low frequency excitations, however, it would make a significant impact on wave propagation applications where high frequency response matters. This may also affect the stability of some explicit time integration methods such as the central difference method, in which the global mass matrix must be full ranked if no damping is defined. Standard dynamics textbooks \citep[e.g.,][]{Chopra2011} are referred to here for more details.
+\section{Concrete}\label{sec:cdp}
+The plastic-damage model proposed by \citet{Lee1998} is used to model concrete in-plane behaviour with the assist of a plane stress wrapper. A similar model known as the concrete damage plasticity (CDP) model, which supports user-defined backbones and degradations, is available in ABAQUS.
+
+The uniaxial backbone curve is defined as a function of the accumulated plastic strain $\varepsilon_p$ by the following expression for both tension and compression,
+\begin{gather}
+\sigma_\aleph=f_\aleph\left(\left(1+a_\aleph\right)\exp\left(-b_\aleph\varepsilon_p\right)-a_\aleph\exp\left(-2b_\aleph\varepsilon_p\right)\right),
+\end{gather}
+where the subscript $\aleph$ can be either $t$ or $c$ to represent tensile and compressive properties, $f_\aleph$ is the initial yield strength, $a_\aleph$ and $b_\aleph$ are two parameters that control the shape of the curve. An illustration of backbones can be seen in \figref{fig:cdp_backbone}.
+\begin{figure}[htb]
+\centering\scriptsize
+\begin{subfigure}{.48\textwidth}\centering
+\begin{tikzpicture}
+\begin{axis}[width=7.5cm,height=5.5cm,domain=0:4,xmin=0,xmax=4,ymin=0,ymax=1.5,xlabel=plastic strain $\varepsilon_p$,ylabel=normalised $\sigma_c$,xticklabels={,,},yticklabels={,,}]
+\addplot[samples=100,black,very thin,fill=gray,fill opacity=0.5]{4*exp(-x)-3*exp(-2*x)}\closedcycle;
+\addplot[samples=100,blue,very thick]{4*exp(-x)-3*exp(-2*x)};
+\node at(1,.5){$g_c$};
+\end{axis}
+\end{tikzpicture}
+\caption{compression}
+\end{subfigure}\hfill
+\begin{subfigure}{.48\textwidth}\centering
+\begin{tikzpicture}
+\begin{axis}[width=7.5cm,height=5.5cm,domain=0:4,xmin=0,xmax=4,ymin=0,ymax=1.5,xlabel=plastic strain $\varepsilon_p$,ylabel=normalised $\sigma_t$,xticklabels={,,},yticklabels={,,}]
+\addplot[samples=100,black,very thin,fill=gray,fill opacity=0.5]{1.5*exp(-x)-.5*exp(-2*x)}\closedcycle;
+\addplot[samples=100,red,very thick]{1.5*exp(-x)-.5*exp(-2*x)};
+\node at(.5,.3){$g_t$};
+\end{axis}
+\end{tikzpicture}
+\caption{tension}
+\end{subfigure}
+\caption{example monotonic backbones used in the CDP model}\label{fig:cdp_backbone}
+\end{figure}
+Regularisations can be implemented by relating $a_\aleph$ and $b_\aleph$ with objective quantities. In specific, the model defines
+\begin{gather}
+g_\aleph=\int_0^\infty\sigma_\aleph~\md{\varepsilon_p}=\dfrac{f_\aleph}{b_\aleph}\left(1+\dfrac{a_\aleph}{2}\right)
+\end{gather}
+to be the area under the corresponding backbone. The specific fracture energy $G_f$ can be used to control the tension softening by further defining $g_t=G_f/l_c$ where $l_c$ is the characteristic length of the target element. The compression counterpart $g_c$ can be defined in a similar fashion. $g_t$ and $g_c$ are two main model parameters that provide mesh objective response. Details can be found elsewhere \citep{Lubliner1989}.
+
+An isotropic damage model is adopted so the stress response is defined as
+\begin{gather}
+\mathbold{\sigma}=\left(1-D\right)\bar{\mathbold{\sigma}}=\left(1-D\right)\mathbold{E}\left(\mathbold{\varepsilon}-\mathbold{\varepsilon}_p\right)
+\end{gather}
+where $\bar{\mathbold{\sigma}}$ is the effective stress, $\mathbold{E}$ is the elastic stiffness, $D=1-\left(1-d_c\right)\left(1-sd_t\right)$ is a scalar degradation factor that relies on its uniaxial version $d_\aleph$, $s(\bar{\mathbold{\sigma}})$ is the stiffness recovery factor. The degradation factor $d_\aleph$, according to the original model \citep{Lee1998}, is
+\begin{gather}
+d_\aleph=1-\exp\left(-c_\aleph\varepsilon_p\right)
+\end{gather}
+where $c_\aleph$ is a material constant that controls the rate of degradation. By definition, $d_\aleph$ ranges from zero to unity.
+
+To simplify the formulation, a normalised internal damage variable $\kappa_\aleph$ is adopted as a function of $\varepsilon_p$,
+\begin{gather}
+\kappa_\aleph=\dfrac{1}{g_\aleph}\int_0^{\varepsilon_p}\sigma_\aleph~\md{\varepsilon_p}.
+\end{gather}
+After some mathematical operations, $d_\aleph$ and $\sigma_\aleph$ can be expressed as functions of $\kappa_\aleph$. Hence, $\kappa_\aleph$ controls the developments of both damage and plasticity of the model. The evolution of $\kappa_\aleph$ is related to the ratios among three principal stress components. Tensile and compressive damage can evolve separately so that tension and compression backbones can have different hardening behaviour.
+
+For numerical implementation, parameters $b_\aleph$ and $c_\aleph$ are associated with the reference degradation factors $\bar{D}_c$ at crush strength and $\bar{D}_t$ at \SI{50}{\percent} of the crack stress, respectively. 
+
+The yield function is defined as
+\begin{gather}
+F=\alpha{}I_1+\sqrt{3J_2}+\beta\left\langle\hat\sigma_{1}\right\rangle-\left(1-\alpha\right)c,
+\end{gather}
+in which $I_1$ is the first invariant of the stress tensor, $J_2$ is the second invariant of the deviatoric stress tensor, $\alpha$ is a dimensionless constant, $\beta(\kappa_\aleph)$ and $c(\kappa_\aleph)$ are the cohesion related parameters, $\hat\sigma_{1}$ is the algebraic maximum eigenvalue of stress and $\left\langle\cdot\right\rangle$ is the Macaulay bracket.
+
+A Drucker-Prager type function is used as the plastic potential,
+\begin{gather}
+G=\sqrt{2J_2}+\alpha_p{}I_1,
+\end{gather}
+where $\alpha_p$ is a material constant that controls dilatation.
+
+Other recently proposed 3D concrete models, such as CDPM1 \citep{Grassl2006} and CDPM2 \citep{Grassl2013}, can also be used. However, some of these models may have difficulties in deriving the corresponding consistent tangent stiffness matrices. In those cases, some low rank update algorithms \citep[e.g.,][]{Shanno1970} can be adopted to obtain secant stiffness matrices.
+\section{Dynamic Analysis of a Cantilever Wall With Simple Material}
+As the main focus of this work is the engineering application of the proposed elements. The analytical validations of SGCMQ and GCMQ are not discussed here for brevity. However, interested readers can refer to the authors' other work \citep{Chang2019,Chang2019a,Chang2020} for details.
+
+The investigations of dynamic performance of the proposed elements starts with a simple cantilever beam/wall example with an aspect ratio of \num{4}. The model is depicted in \figref{fig:cantilever_model}.
+\begin{figure}[htb]
+\centering\footnotesize
+\begin{tikzpicture}
+\FixedSupport[-90]{0,.5}{2}
+\draw(0,0)rectangle(4,1);
+\draw[|<->|](-.5,0)--++(0,1)node[midway,fill=white]{\SI{3}{\meter}};
+\draw[|<->|](0,-.5)--++(4,0)node[midway,fill=white]{\SI{12}{\meter}};
+\node[align=left]at(6.5,.5){\setstretch{1}thickness $t=\SI{200}{\milli\metre}$\\elastic modulus $E=\SI{30}{\giga\pascal}$\\Poisson's ratio $\nu=\num{0}$\\density $\rho=\SI{300}{\tonne\per\meter^3}$};
+\begin{scope}[xshift=-4.5cm]
+\draw[->](-.4,0)--++(3.4,0)node[below]{$t$};
+\draw[->](0,-.4)--++(0,1.9)node[left]{$a$};
+\draw[red,very thick](0,1)node[left=1mm]{$0.2g$}--++(1.5,0)--++(0,-1)node[below]{$t_d=\SI{1}{\second}$}--++(1,0);
+\node at(1.5,-.7){accelerogram};
+\end{scope}
+\end{tikzpicture}
+\caption{a simple cantilever beam example}\label{fig:cantilever_model}
+\end{figure}
+Instead of point mass, distributed mass is used with the consistent mass formulation. The density is set to \SI{300}{\tonne\per\metre^3} so that the analytical solution of the first natural frequency $f_1$ \citep{Young2012} can be approximated by
+\begin{gather}
+f_1\approx\dfrac{3.52}{2\pi}\sqrt{\dfrac{EI}{\rho{}bhL^4}}=\dfrac{3.52}{2\pi}\sqrt{\dfrac{Eh^2}{12\rho{}L^4}}=\SI{1.065}{\hertz}.
+\end{gather}
+The first natural period is $t_1=\SI{0.939}{\second}$. The duration of the rectangular pulse $t_d$ is set to \SI{1}{\second}. Since the chosen $t_d$ is close to $t_1$, the amplitude of displacement in the free vibration phase is significantly smaller than that of the forced vibration phase. Discussions on the theoretical solutions can be found elsewhere \citep{Chopra2011}. This feature can be used to amplify the difference among numerical models. The constant average acceleration Newmark method is used for the time integration. The time step size $\Delta{}t$ is set to \SI{0.01}{\second}. To avoid any potential bias due to different damping models, no damping is defined so an undamped beam is analysed.
+\subsection{Eigenanalysis}
+The eigenanalysis is performed to compute the first natural period. Numerical results, which are obtained by using SGCMQG elements with the consistent mass formulation, are shown in \tabref{tab:modalanalysis}. The reference solution is computed by using \num{3600} CPS4 elements with the lumped mass formulation, which is the default configuration in ABAQUS. The results are not significantly affected by different integration schemes. Both mass matrix formulations give similar results. It could be seen that relatively accurate natural periods, especially that of lower modes, can be obtained by using only a few elements.
+\begin{table}[htb]
+\centering\footnotesize
+\caption{the first natural period computed by using different meshes}\label{tab:modalanalysis}
+\begin{tabular}{rrrrrrr}
+	\toprule
+	        mesh & \numproduct{1x1} & \numproduct{1x2} & \numproduct{1x4} & \numproduct{2x4} & \numproduct{2x8} &  ref. \\ \midrule
+	$\omega_1^2$ &     37.44 &     43.23 &     42.28 &     41.70 &     41.41 & 41.37 \\
+	       $t_1$ &      1.03 &      0.96 &      0.97 &      0.97 &      0.98 &  0.98 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+From an algorithmic perspective, the excellent coarse mesh accuracy shown by (S)GCMQ is also advantageous to dynamics problems of structures. It is possible to use a very coarse mesh of (S)GCMQ to represent the stiffness of the target structure. By such, the highest frequency of the finite element model is lowered as the total number of DoFs is reduced. The potential fictitious response contributed by high frequency modes can be effectively eliminated from the source. This gives more flexibility when it comes to choose a proper time integration algorithm. The algorithmic damping and the second order accuracy cannot coexist in the well known Newmark method. To obtain the algorithmic damping, analysts shall either give up the second order accuracy or switch to another algorithm such as the generalised alpha method \citep{Chung1993}. With the high coarse mesh accuracy, it is possible to obtain satisfactory results by using the undamped time integration methods.
+\subsection{Linear Analysis}
+The linear analyses are performed with four mesh grids respectively: \numproduct{1x1}, \numproduct{1x2}, \numproduct{1x4} and \numproduct{2x8}. The tip displacement histories are shown in \figref{fig:cantilever_disp}.
+\begin{figure}[htb]
+\centering\scriptsize
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/CANTI/LINEAR1}
+\caption{with \numproduct{1x1} element}
+\end{subfigure}\hfill
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/CANTI/LINEAR2}
+\caption{with \numproduct{1x2} elements}
+\end{subfigure}\vspace*{4mm}
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/CANTI/LINEAR4}
+\caption{with \numproduct{1x4} elements}
+\end{subfigure}\hfill
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/CANTI/LINEAR16}
+\caption{with \numproduct{2x8} elements}
+\end{subfigure}
+\caption{linear dynamic analysis of the undamped cantilever beam subjected to a rectangular pulse}\label{fig:cantilever_disp}
+\end{figure}
+All versions of GCMQ and SGCMQ show little difference in each case, so only one record, denoted as (S)GCMQ, is shown for the sake of clearness.
+
+Due to the overstiff nature, models with Q4 elements show shorter periods and smaller maximum tip displacements compared to models with (S)GCMQ elements. With mesh refinements, less stiff response can be recovered by Q4 elements. However, even with a \numproduct{2x8} mesh, the computed first mode period is still smaller than that of (S)GCMQ elements, which indicates that the numerical model is still too stiff. It can be predicted that a much denser mesh is required for Q4 elements to produce an equivalently accurate response. However, the difference among models with (S)GCMQ elements does not vary much. In particular, even with only one element defined, the error of response in forced vibration phase is not significant. (S)GCMQ is able to perform well in terms of linear dynamic analysis with the most coarse meshes.
+
+Meanwhile, given the fact that different numerical integration schemes have no significant impact on the predicted linear displacement history, the simplified GCMQ with the five-point integration scheme (SGCMQI) element appears to be a better option as the computational cost of which is minimized.
+\subsection{Nonlinear Analysis}
+To avoid any mesh objectivity issues, here a linear isotropic hardening von Mises material is used for the nonlinear analysis. The yielding stress is chosen to be \SI{80}{\mega\pascal} as the maximum stress observed in the previous linear analysis is about \SI{100}{\mega\pascal}.
+
+\begin{figure}[htb]
+\centering\scriptsize
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/CANTI/NONLINEAR4}
+\caption{with \numproduct{1x4} elements}
+\end{subfigure}\hfill
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/CANTI/NONLINEAR8}
+\caption{with \numproduct{2x4} elements}\label{fig:cantilever_disp_nonlinear_dense}
+\end{subfigure}
+\caption{nonlinear dynamic analysis of the undamped cantilever beam subjected to a rectangular pulse}\label{fig:cantilever_disp_nonlinear}
+\end{figure}
+The displacement histories are shown in \figref{fig:cantilever_disp_nonlinear}. With only one element assigned along wall width (beam depth), (S)GCMQI and (S)GCMQL tend to overestimate the development of plasticity. This can be properly justified since except for the central one, all other integration points are located on element boundaries in the Irons and Lobatto quadratures. This problem can be largely alleviated by simply defining one more element transversely. As can be seen in \figref{fig:cantilever_disp_nonlinear_dense}, all three different integration schemes show no significant difference with such meshes. In contrast, (S)GCMQG shows reasonably accurate response with coarse mesh grids. It is noted that with the Gauss scheme, the maximum stress, which often occurs on element boundaries, cannot be captured by any integration points. Based on the results of this particular example, it appears that (S)GCMQG, compared to the other versions, shall be used with extremely coarse meshes for more reliable results. Meanwhile, by the construction of (S)GCMQ, mesh refinements always result in more accurate response. However, such an improvement may not be necessary considering the coarse mesh performance of (S)GCMQ.
+\section{Dynamic Analysis of a RC Shear Wall}\label{sec:rc_wall_dynamic}
+A reinforced concrete cantilever shear wall specimen shown in \figref{fig:rc_wall} with an aspect ratio of \num{5} is analysed. The specimen is lightly reinforced. As an illustrative example, the reinforcement is modelled in a uniform, smeared approach and may not represent real engineering practice. The total seismic mass is \SI{100}{\tonne}.
+\begin{figure}[htb]
+\centering\footnotesize
+\begin{tikzpicture}
+\FixedSupport{.5,0}{2}
+\draw[thick](0,0)rectangle(1,5);
+\foreach\y in{1,2,3,4}{\draw[thick](0,\y)--++(1,0);}
+\draw[|<->|](0,-.5)--++(1,0)node[midway,fill=white]{\SI{3}{\metre}};
+\draw[|<->|](-.5,0)--++(0,5)node[midway,fill=white,rotate=90]{\SI{15}{\metre}};
+\begin{scope}[xshift=6cm,yshift=2.5cm]
+\node[align=left]at(0,0){horizontal mass: $m=\SI{20}{\tonne}$ per floor\\[1mm]thickness: $t=\SI{200}{\milli\meter}$\\[1mm]concrete elastic modulus: $E_c=\SI{30}{\giga\pascal}$\\[1mm]concrete compression strength: $f_c=\SI{30}{\mega\pascal}$\\[1mm]concrete tension strength: $f_t=\SI{3}{\mega\pascal}$\\[1mm]steel elastic modulus: $E_s=\SI{200}{\giga\pascal}$\\[1mm]steel yield strength: $f_y=\SI{300}{\mega\pascal}$\\[1mm]steel hardening ratio: $h=0.02$\\[1mm]smeared reinforcement ratio: \SI{0.5}{\percent}\\[1mm]finite element mesh: $2\times10$ (width$\times$height)};
+\end{scope}
+\end{tikzpicture}
+\caption{a reinforced concrete shear wall specimen}\label{fig:rc_wall}
+\end{figure}
+
+A global Rayleigh damping (\SI{5}{\percent} on the first two modes) is applied. The damping matrix is \textit{deliberately} chosen to be a constant matrix that is proportional to mass and initial stiffness matrices to avoid any potential bias brought by the damping matrix. Nevertheless, this option is known to be problematic due to the stiffness proportional terms \citep{Carr1997,Chopra2015}, better alternatives are available. The ground motion used is the NS component of the El Centro record, the PGA of which is $0.349g$. The Newmark method with a constant average acceleration formulation is selected for time integration. The concrete material model used is the CDP model while the Menegotto-Pinto steel model \citep{Menegotto1973} is used for reinforcement.
+
+\begin{figure}[htb]
+\centering\scriptsize
+\input{PIC/WALL/DISP}
+\caption{displacement history of a reinforced concrete shear wall}\label{fig:rc_wall_disp}
+\end{figure}
+The computed first eigenvalue of the corresponding generalised eigenvalue problem is \num{351.67}, which yields the first natural period to be $T_1\approx\SI{0.34}{\second}$. \figref{fig:rc_wall_disp} shows the displacement histories. SGCMQI and SGCMQL show similar results thus only one record SGCMQI(L) is presented. The difference between linear and nonlinear responses starts at $t\approx\SI{2.2}{\second}$. The major plastic deformation occurs at $t\approx\SI{4.9}{\second}$.
+
+\begin{figure}[htb]
+\centering\scriptsize
+\input{PIC/WALL/KAPPAT}
+\caption{evolution of tensile damage index $\kappa_t$ at left and right corners}\label{fig:rc_wall_kappat}
+\end{figure}
+\figref{fig:rc_wall_kappat} shows the evolution of tensile damage index $\kappa_t$ at both the left and right corners of wall foot. As in this example, the nonlinear response is mainly contributed by concrete tensile failure localised on the first floor, the characteristics of the plasticity development observed from the displacement history can also be seen in \figref{fig:rc_wall_kappat}.
+
+It could be again seen in \figref{fig:rc_wall_disp} that due to the development of plasticity, different arrangements of interpolation/sampling points lead to different global responses. Although a hardening steel model and an objective concrete model are used, this discrepancy varies according to the degree of material nonlinearity. In this particular example, further numerical investigations reveal that such a difference vanishes if an elastic material model is used for reinforcement, in which case the nonlinear response purely stems from the concrete material model. It could thus be inferred that the total energy dissipation of a two-composite material relies on not only softening composite but also hardening composite. To obtain objective results, analysts shall consider two composites (concrete and steel) as a whole and adjust the total material response.
+
+\begin{figure}[htb]
+\centering\scriptsize
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/WALL/REBAR}
+\caption{reinforcement response}\label{fig:rc_wall_rebar}
+\end{subfigure}\hfill
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/WALL/SHEAR}
+\caption{shear hysteresis}\label{fig:rc_wall_shear}
+\end{subfigure}
+\caption{responses of reinforced concrete shear wall}
+\end{figure}
+\figref{fig:rc_wall_rebar} shows the material responses of reinforcement in two extreme integration points. Since the left corner has a higher value of tensile damage index $\kappa_t$, the maximum strain is accordingly larger than that of the right corner. The final strain in the right corner is observed to be positive, meaning that the wall specimen is uplifted. The concrete model can be modified to refine the corresponding response. It shall be noted that the ratcheting effect could exist in the adopted model for reinforcement, with other models, different responses may be obtained.
+
+The base shear resistance is plotted in \figref{fig:rc_wall_shear}. Strong nonlinear response is observed. The simple multilinear hysteresis models cannot simulate wall structures in which higher modes may have considerable contributions. The maximum shear resistance is about \SI{295}{\kilo\newton}.
+
+\begin{figure}[htb]
+\centering\scriptsize
+\input{PIC/WALL/MESH}
+\caption{displacement histories with different meshes}\label{fig:rc_wall_mesh}
+\end{figure}
+Complete mesh objective results are difficult to obtain in dynamic analyses since the response tends to be sensitive to the initial development of plasticity, which is amplified due to the presence of damping and inertial terms. Nevertheless, close results can still be obtained. \figref{fig:rc_wall_mesh} shows the displacement histories with \numproduct{2x2} and \numproduct{3x3} meshes. The corresponding material properties are strictly scaled according to the characteristic lengths of elements. It could be seen that the difference between two types of meshes is insignificant, considering the tensile damage index is approaching unity as shown in \figref{fig:rc_wall_kappat}. For cases with moderate nonlinearity, such a difference would be smaller, resulting in a higher coarse mesh accuracy.
+\section{Dynamic Analysis of a RC Coupled Shear Wall}
+The presence of drilling degrees of freedom offers great convenience to model the connections between wall panels and adjacent beam-type members. This is advantageous when it comes to simulate wall-frame structures and coupled walls. The conventional concept of rotation is derived based on the `plane sections remain plane' assumption, thus the beam theory. It is in general difficult to define the so called rotation field in a 2D continuum when deformation gradient has similar magnitudes along two axes. Before performing simulations of reinforced concrete structural walls, the performance of drilling DoFs are firstly examined.
+\subsection{Numerical Experiment}
+The model shown in \figref{fig:drilling_ex} is analysed. A slender beam of size \numproduct{2x10} is attached to a square panel of size \numproduct{10x10}. A uniform thickness of unity is used for both panel and beam. Although it may not be closely related, the ratio between moments of inertia is $I_p/I_b=\num{125}$, which is kept unchanged throughout different cases. The beam and panel may have different elastic moduli to represent different stiffness ratios between panel and beam. The panel is fully fixed at the base and a unit vertical displacement is applied to the free end of the beam, the corresponding reaction forces is recorded. This structure can be modelled by using membrane (for panel) and beam (for beam) elements. Alternatively, membrane elements can be used to represent both panel and beam.
+\begin{figure}[htb]
+\centering\footnotesize
+\begin{tikzpicture}
+\FixedSupport{1.5,0}{4}
+\draw(0,0)rectangle(3,3);\draw(3,3)rectangle(6,2.5);
+\draw[->](6.7,2.3)--(6.7,3.2)node[right=2mm]{$\delta$};
+\node[]at(1.5,1.5){$E_p$};
+\node[]at(4.5,2.75){$E_b$};
+\draw[|<->|](-.3,0)--++(0,3)node[midway,fill=white]{$L$};
+\draw[|<->|](0,-.4)--++(3,0)node[midway,fill=white]{$L=10$};
+\draw[|<->|](3,-.4)--++(3,0)node[midway,fill=white]{$L=10$};
+\end{tikzpicture}
+\caption{wall example with attached beam}\label{fig:drilling_ex}
+\end{figure}
+
+In the beam-panel model, the panel is modelled by (S)GCMQ elements while the attached beam is idealised as elastic beam element. The Poisson's ratio is set to zero so the deflection of beam is accurate. Two different meshes are tested: \numproduct{2x2} and \numproduct{4x4}. The corresponding results are shown in \figref{fig:coupled_test}. The reference values are given by 2D models with refined meshes of plane stress elements in ABAQUS. It could be seen from \figref{fig:coupled_test} that the drilling DoFs in (S)GCMQ perform well with weak coupling members. For $E_b/E_p\leqslant\num{1}$, the error can be bounded within \SI{20}{\percent} and becomes insignificant when $E_b/E_p\leqslant\num{0.1}$ with the \numproduct{2x2} mesh. It is worth mentioning that $E_b/E_p=\num{125}$ leads to the same $EI$ for both panel and beam. However, different mesh densities show different behaviour. A refined mesh does not necessarily lead to more accurate results. With the \numproduct{4x4} mesh, the results deteriorates quickly with an increasing moduli ratio $E_b/E_p$. It shall be noted that with the \numproduct{2x2} mesh the beam depth is \SI{40}{\percent} of the length of the adjacent panel element while this value increases to \SI{80}{\percent} with the \numproduct{4x4} mesh. Such a high ratio means the physical boundary condition \textit{cannot} be precisely represented by the numerical model. Deformation compatibility may become a severe problem as different elements adopt different displacement interpolations.
+\begin{figure}[htb]
+\centering\scriptsize
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/COUPLED/TEST}
+\caption{end force required}
+\end{subfigure}\hfill
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/COUPLED/ERROR}
+\caption{corresponding error}
+\end{subfigure}
+\caption{results of panel with attached beam with different moduli ratios}\label{fig:coupled_test}
+\end{figure}
+
+It is thus \textit{inappropriate} to model this type of connections by using membrane and beam elements. It can be inferred that the error of rotational constraint would be lowered with shallower beams. The response of strong coupling members is hence not well captured by the current definition of drilling DoFs. Indeed, for rigid beams, deformation mainly occurs in the wall panel, where the rotational constraint may be contributed by a number of adjacent wall elements.
+
+In the author's opinion, it is \textit{not recommended} to simulate walls with opening and/or strong coupling members such as deep beams by using hybrid models that consist of membrane elements --- not only (S)GCMQ but also other elements --- and beam elements. The focus of the remaining of this section is limited to coupled walls with weak coupling beams/slabs.
+\subsection{Reinforced Concrete Coupled Wall}
+Two reinforced concrete shear walls shown in \secref{sec:rc_wall_dynamic} connected with each other by beams are used to form a coupled wall with a spacing of \SI{3}{\meter}. The illustration of the coupled wall, along with the beam section, is depicted in \figref{fig:rc_coupled_wall}.
+\begin{figure}[htb]
+\centering\footnotesize
+\begin{tikzpicture}
+\definecolor{PH1}{RGB}{166,206,227}
+\definecolor{PH2}{RGB}{31,120,180}
+\definecolor{PH3}{RGB}{178,223,138}
+\definecolor{PH4}{RGB}{51,160,44}
+\definecolor{PH5}{RGB}{251,154,153}
+\definecolor{PH6}{RGB}{227,26,28}
+\definecolor{PH7}{RGB}{253,191,111}
+\definecolor{PH8}{RGB}{255,127,0}
+\definecolor{PH9}{RGB}{202,178,214}
+\definecolor{PH10}{RGB}{106,61,154}
+\FixedSupport{2.5,0}{2}
+\FixedSupport{.5,0}{2}
+\draw[thick](2,0)rectangle(3,5);
+\draw[thick](0,0)rectangle(1,5);
+\foreach\y in{1,2,3,4}{\draw[thick](2,\y)--++(1,0)(0,\y)--++(1,0);}
+\foreach\y in{1,2,3,4,5}{\draw[ultra thick](1+.07,\y)--++(1-.14,0);}
+\node[fill=PH1,inner sep=0,minimum size=1.4mm]at(1.07,1){};
+\node[fill=PH3,inner sep=0,minimum size=1.4mm]at(1.07,2){};
+\node[fill=PH5,inner sep=0,minimum size=1.4mm]at(1.07,3){};
+\node[fill=PH7,inner sep=0,minimum size=1.4mm]at(1.07,4){};
+\node[fill=PH9,inner sep=0,minimum size=1.4mm]at(1.07,5){};
+\node[fill=PH2,inner sep=0,minimum size=1.4mm]at(1.93,1){};
+\node[fill=PH4,inner sep=0,minimum size=1.4mm]at(1.93,2){};
+\node[fill=PH6,inner sep=0,minimum size=1.4mm]at(1.93,3){};
+\node[fill=PH8,inner sep=0,minimum size=1.4mm]at(1.93,4){};
+\node[fill=PH10,inner sep=0,minimum size=1.4mm]at(1.93,5){};
+\node[below left=1mm]at(1.07,1){\color{PH1}\tiny{}PH1};
+\node[below left=1mm]at(1.07,2){\color{PH3}\tiny{}PH3};
+\node[below left=1mm]at(1.07,3){\color{PH5}\tiny{}PH5};
+\node[below left=1mm]at(1.07,4){\color{PH7}\tiny{}PH7};
+\node[below left=1mm]at(1.07,5){\color{PH9}\tiny{}PH9};
+\node[below right=1mm]at(1.93,1){\color{PH2}\tiny{}PH2};
+\node[below right=1mm]at(1.93,2){\color{PH4}\tiny{}PH4};
+\node[below right=1mm]at(1.93,3){\color{PH6}\tiny{}PH6};
+\node[below right=1mm]at(1.93,4){\color{PH8}\tiny{}PH8};
+\node[below right=1mm]at(1.93,5){\color{PH10}\tiny{}PH10};
+\draw[|<->|](0,-.5)--++(1,0)node[midway,fill=white]{\SI{3}{\metre}};
+\draw[|<->|](1,-.5)--++(1,0)node[midway,fill=white]{\SI{3}{\metre}};
+\draw[|<->|](2,-.5)--++(1,0)node[midway,fill=white]{\SI{3}{\metre}};
+\draw[|<->|](-.5,0)--++(0,5)node[midway,fill=white,rotate=90]{\SI{15}{\metre}};
+\node[align=left,anchor=north west]at(4,5){concrete:\\[2mm]$E_c=\SI{30}{\giga\pascal}$\\[1mm]$f_c=\SI{30}{\mega\pascal}$\\[1mm]$f_t=\SI{3}{\mega\pascal}$\\[2mm]reinforcement:\\[2mm]$E_s=\SI{200}{\giga\pascal}$\\[1mm]$f_y=\SI{300}{\mega\pascal}$\\[1mm]$h=0.02$};
+\node[align=left,anchor=north west]at(7,5){for each wall:\\horizontal lumped\\[2mm]$m=\SI{20}{\tonne}$ per floor\\[1mm]$t=\SI{200}{\milli\meter}$\\[1mm]$\rho=\SI{0.5}{\percent}$\\[1mm]SGCMQ element\\[1mm]$2\times10$ mesh};
+\node[align=left,anchor=north west]at(10,5){for each beam:\\[2mm]\qtyproduct{200x300}{\milli\meter} section\\[1mm]
+$8\phi16$ reinforcement\\[1mm]
+force-based element (9 IPs)\\[2mm]
+\begin{tikzpicture}[scale=1.2]
+\scriptsize
+\draw(0,0)rectangle(1,1.5);
+\draw[|<->|](0,-.3)--++(1,0)node[midway,fill=white,anchor=center]{\SI{0.2}{\meter}};
+\draw[|<->|](1.3,0)--++(0,1.5)node[midway,fill=white,anchor=center,rotate=90]{\SI{0.3}{\meter}};
+\node[circle,fill,minimum size=1.4mm,inner sep=0,anchor=center]at(.15,.15){};
+\node[circle,fill,minimum size=1.4mm,inner sep=0,anchor=center]at(.5,.15){};
+\node[circle,fill,minimum size=1.4mm,inner sep=0,anchor=center]at(.85,.15){};
+\node[circle,fill,minimum size=1.4mm,inner sep=0,anchor=center]at(.15,1.35){};
+\node[circle,fill,minimum size=1.4mm,inner sep=0,anchor=center]at(.5,1.35){};
+\node[circle,fill,minimum size=1.4mm,inner sep=0,anchor=center]at(.85,1.35){};
+\node[circle,fill,minimum size=1.4mm,inner sep=0,anchor=center]at(.15,.75){};
+\node[circle,fill,minimum size=1.4mm,inner sep=0,anchor=center]at(.85,.75){};
+\end{tikzpicture}
+};
+\end{tikzpicture}
+\caption{a reinforced concrete shear wall specimen}\label{fig:rc_coupled_wall}
+\end{figure}
+The thickness of concrete cover is assumed to be \SI{30}{\milli\meter}. The force-based beam element \citep{Spacone1996} is adopted to model beams since its accuracy mainly relies on the number of integration points \citep{Neuenhofer1997} so coarse meshes can also be utilised. For beam sections, the Tsai's equation \citep{Tsai1988} is adopted for concrete backbones while the Menegotto-Pinto steel model is used for reinforcement. The configuration of numerical algorithm is identical to that in \secref{sec:rc_wall_dynamic}. The first natural period computed is around \SI{0.32}{\second}. The same NS component of El Centro record is used as ground motion.
+
+Typical material properties are used. For the configuration listed, an elastic analysis reveals that the response of the hybrid model (with SGCMQ and beam elements) is close to that of the model with plane stress elements. The difference varies depending on the mesh size but is within \SI{10}{\percent}. It is thus reasonable to use the hybrid model to perform the corresponding nonlinear analyses.
+
+\begin{figure}[htb]
+\centering\scriptsize
+\input{PIC/COUPLED/DISP}
+\caption{displacement history of coupled wall}\label{fig:coupled_wall_disp}
+\end{figure}
+\figref{fig:coupled_wall_disp} shows the corresponding displacement histories with three integration schemes. The difference between SGCMQG and the other two versions is not as significant as in \figref{fig:rc_wall_disp}. However, in this example SGCMQG gives slightly more stiff results. It could be inferred that the performance difference between SGCMQG and SGCMQI/SGCMQL would vary from one specific model to another. It is in general difficult to conclude which version is better in terms of accuracy. The overall shapes of roof displacement histories shown in \figref{fig:rc_wall_disp} and \figref{fig:coupled_wall_disp} resemble each other. Due to the presence of coupling beams, the magnitude of displacement is lowered in the first five seconds. The major difference occurs between \SI{5}{\second} and \SI{10}{\second}, which further leads to different residual displacements.
+
+\figref{fig:coupled_wall_axial} shows the axial force histories of both walls. Nonzero residual axial forces are observed to balance the overturning moment caused by horizontal inertial forces while the summation of which eventually stays at zero.
+\begin{figure}[htb]
+\centering\scriptsize
+\input{PIC/COUPLED/AXIAL}
+\caption{axial force history of coupled wall}\label{fig:coupled_wall_axial}
+\end{figure}
+
+\figref{fig:coupled_wall_kappat} shows the evolution of $\kappa_t$ in both walls. Both walls have close $\kappa_t$ values at the same locations. With all material properties unmodified, the coupling effect lowers the maximum tensile damage index $\kappa_t$ from \num{0.99} in \figref{fig:rc_wall_disp} to \num{0.88} in \figref{fig:coupled_wall_kappat}.
+\begin{figure}[htb]
+\centering\scriptsize
+\input{PIC/COUPLED/KAPPAT}
+\caption{tensile damage index $\kappa_t$ history of coupled wall}\label{fig:coupled_wall_kappat}
+\end{figure}
+
+Plastic hinges are also developed in coupling beams. \figref{fig:coupled_wall_ph} shows the hysteresis behaviour of typical beam ends. The upper three floors show similar responses while the first two give different hysteresis loops. It can be deduced that the deformation of two walls shows a contraflexure point between the second and third floor. Since the adopted beam element does not account for shear response and there is no rotational inertia, two end moments of the same beam sum up to zero due to force equilibrium. Due to the same reason, the corresponding shear failure mechanisms cannot be captured. In fact, modelling shear failure patterns of coupling beams is similar to simulating walls in which shear effects cannot be ignored. Beam elements may not be suitable for this type of problems. The cyclic concrete material model, as defined in the previous work \citep{Chang2019}, results in multilinear unloading/reloading hysteric response. This may not be accurate for some engineering applications.
+\begin{figure}[htbp]
+\centering\scriptsize
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/COUPLED/PH9}
+\caption{plastic hinge 9}
+\end{subfigure}\hfill
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/COUPLED/PH10}
+\caption{plastic hinge 10}
+\end{subfigure}\vspace*{2mm}
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/COUPLED/PH1}
+\caption{plastic hinge 1}
+\end{subfigure}\hfill
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/COUPLED/PH2}
+\caption{plastic hinge 2}
+\end{subfigure}
+\caption{responses of plastic hinges located at both ends of coupling beams}\label{fig:coupled_wall_ph}
+\end{figure}
+
+The presence of drilling DoFs provides the ability to model wall-beam connections in a natural approach. Other workarounds also exist to address this problem, such as using rigid offset bars and extending beam elements into wall panels. However, those methods either underestimate or overestimate the constraint ability provied by wall panels. Before a clear and precise definition of rotation field for 2D panels, it is difficult to argue which method is more advantageous. Nevertheless, (S)GCMQ offers an alternative to approach the problem. As can be seen in the numerical experiment, the accuracy can be guaranteed if the coupling effect is weak. Drilling DoFs are also appealing to geotechnical engineers when it comes to model pile problems in which piles are often modelled by beam elements. Retaining walls could also be modelled by (S)GCMQ.
+
+\begin{figure}[htb]
+\centering\scriptsize
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/COUPLED/LVDISP}
+\caption{left wall}
+\end{subfigure}\hfill
+\begin{subfigure}{.49\textwidth}\centering
+\input{PIC/COUPLED/RVDISP}
+\caption{right wall}
+\end{subfigure}
+\caption{elongation of the coupled wall under seismic excitation}\label{fig:coupled_elongation}
+\end{figure}
+Finally the elongation of two walls are shown in \figref{fig:coupled_elongation}. Since there is no axial load applied, two walls behave in a similar manner. The left wall reaches a larger vertical elongation than that of the right wall. This is consistent with the axial load distribution as shown earlier in \figref{fig:coupled_wall_axial}. The difference would be greater if the coupled wall is axially loaded.
+\section{Conclusions}
+The SGCMQ element, namely the Simplified version of GCMQ, is proposed in this work to further improve its numerical performance. Its performance in terms of dynamic analysis is investigated with both simple and complex materials. It could be seen that SGCMQ retains the high coarse mesh accuracy shown by GCMQ. Relatively accurate eigenvalues can be computed by using very few elements. This helps predict accurate dynamic response subjected low frequency excitations. For nonlinear dynamic analysis, different integration schemes may give slightly different results. Such a difference diminishes with mesh refinements. Analysts are suggested to select integration schemes according to the specific problems under consideration and the mesh grids used.
+
+Due to the lack of a proper definition of drilling degree of freedom in the framework of classical continua, the `accuracy' of drilling DoFs remains unclear. It could be seen from the numerical experiments that drilling DoFs can only be utilized when the coupling effect is weak. Beam elements can be directly connected to SGCMQ elements to simulate weakly coupled walls and wall-frame structures. For the strong coupling effect, such as walls with holes and/or deep beams, it is recommanded to use planar elements to perform the corresponding simulation tasks.
+
+The numerical models used in this work are created on the finite element analysis platform \texttt{suanPan} \citep{Chang2019b}. The scripts can be found online\footnote{https://github.com/TLCFEM/response-history-application-es}.
+\section*{Acknowledgement}
+The authors would like to acknowledge the financial support under Grant No. E6953 provided by the Earthquake Commission\footnote{https://www.eqc.govt.nz/} (EQC).
+\bibliography{APP}
+\end{document}
